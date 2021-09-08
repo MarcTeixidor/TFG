@@ -25,14 +25,6 @@ class RecommenderSystems():
     """
     def __init__(self, config):
         # Load the processed data in sparse matrix format
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> parent of 4645907 (fixes)
-=======
->>>>>>> parent of ed73ed9 (fixes)
         # config = vars(config)
         data = scipy.sparse.load_npz(os.getcwd() + INPUT_PATH + TRAIN_DATA_PATH)
         self.topk = config['topk']
