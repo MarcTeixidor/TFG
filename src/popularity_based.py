@@ -4,7 +4,7 @@ class Pop_Based_Recommender():
 
     def __init__(self, config, data):
         self.data = data
-        self.topk = config['topk']
+        self.topk = int(config['topk'])
         self.popular_songs = self.get_popular_songs()
 
     def get_popular_songs(self):

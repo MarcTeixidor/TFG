@@ -5,7 +5,7 @@ class MF_Recommender():
 
     def __init__(self, config, data):
         self.data = data
-        self.topk = config['topk']
+        self.topk = int(config['topk'])
 
         # Initialize and train the model
         self.model = self.get_model()

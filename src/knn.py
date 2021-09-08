@@ -5,7 +5,7 @@ class KNN_Recommender():
 
     def __init__(self, config, data):
         self.data = data
-        self.topk = config['topk']
+        self.topk = int(config['topk'])
 
         # Initialize model, fit data and compute kneighbors
         self.model = self.get_model()

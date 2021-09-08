@@ -27,7 +27,7 @@ class RecommenderSystems():
         # Load the processed data in sparse matrix format
         # config = vars(config)
         data = scipy.sparse.load_npz(os.getcwd() + INPUT_PATH + TRAIN_DATA_PATH)
-        self.topk = config['topk']
+        self.topk = int(config['topk'])
 
         if config["model"] == 'random':
             self.model = Random_Recommender(config, data) # Call method to instantiate random model
@@ -62,5 +62,6 @@ if __name__ == "__main__":
 
     start_time = time.time()
     recommendations = model.make_k_recommendations()
+    print(recommendations)
     end_time = time.time() - start_time
     print(end_time)
