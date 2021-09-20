@@ -42,7 +42,7 @@ class RecommenderSystems():
             config['n_songs'] = data.shape[1]
             config['latent_dim'] = 8 # Revise this
             config['layers'] = [16,32,16,8] # Default 5 layers, revise...
-            self.model = Neural_Recommender(config) # Call method to instantiate neural MF model
+            self.model = Neural_Recommender(config, data) # Call method to instantiate neural MF model
 
     """
     This function returns the desired instantiated model
@@ -61,7 +61,8 @@ if __name__ == "__main__":
     model = model.get_model()
 
     start_time = time.time()
-    recommendations = model.make_k_recommendations()
-    print(recommendations)
+    recommendations = []
+    for i in range(model.get_data_len()[0]):
+        recommendations.append(model.make_k_recommendations())
     end_time = time.time() - start_time
     print(end_time)
