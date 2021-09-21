@@ -3,7 +3,7 @@ import random
 import pandas as pd
 from copy import deepcopy
 from torch.utils.data import DataLoader, Dataset
-from sklear import train_test_split
+from sklearn.model_selection import train_test_split
 
 
 class UserSongDataset(Dataset):
@@ -21,7 +21,7 @@ class UserSongDataset(Dataset):
 
 class DataGenerator(object):
 
-    def __init__(self, uid, playlist_data, config):
+    def __init__(self, playlist_data, config):
         """
         uid: user id
         sparse_row: binary sparse array for songs that belong to the playlist from uid
@@ -35,32 +35,32 @@ class DataGenerator(object):
 
     def _split(self):
 
-        X = [self.uids, self.sids]
-        y = self.playlist_data
+        X = set()
+        y = []
 
-        return X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+        for u in self.uids:
+            for s in self.sids:
+                X.update([(u,s)])
+                y.append(self.playlist_data[u, s])
+        
+        X = list(X)
+
+        X_train, y_train, X_test, y_test = train_test_split(X, y, test_size=0.2)
+
+        return X_train, X_test, y_train, y_test
 
     def _train_loader(self, batch_size):
         
         users, songs, playlist_binary = [], [], []
 
-        for u in range(len(self.uids):
+        for u in range(len(self.uids)):
             for s in range(len(self.sids)):
                 users.append(int(u))
                 songs.append(int(s))
                 playlist_binary.append(int(self.playlist_data[u][s]))
 
         dataset = UserSongDataset(  user_tensor=torch.LongTensor(users),
-                                    item_tensor=torch.LongTensor(items),+
+                                    item_tensor=torch.LongTensor(items),
                                     target_tensor=torch.LongTensor(playlist_binary))
 
         return DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-
-        
-        
-
-
-
-
-    
