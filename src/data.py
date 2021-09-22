@@ -1,23 +1,13 @@
 import torch
 import random
-import pandas as pd
+import os
+import numpy as np
 from copy import deepcopy
 from torch.utils.data import DataLoader, Dataset
 from sklearn.model_selection import train_test_split
 
-
-class UserSongDataset(Dataset):
-
-    def __init__(self, user_tensor, item_tensor, target_tensor):
-        self.user_tensor = user_tensor
-        self.item_tensor = item_tensor
-        self.target_tensor = target_tensor
-
-    def __getitem__(self, uid):
-        return self.user_tensor[index], self.item_tensor[index], self.target_tensor[index]
-
-    def __len__(self):
-        return self.user_tensor.size(0)
+INPUT_PATH = "/data/"
+TRAIN_FOLDER_PATH = 'training/'
 
 class DataGenerator(object):
 
@@ -29,7 +19,8 @@ class DataGenerator(object):
 
         self.playlist_data = playlist_data
         self.uids = list(range(config['n_users']))
-        self.sids = list(range(config['n_songs'])) 
+        self.sids = list(range(config['n_songs']))
+        self.save_files = config['save_files']
         self.X_train, self.y_train, self.X_test, self.y_test = self._split()
 
 
@@ -47,20 +38,11 @@ class DataGenerator(object):
 
         X_train, y_train, X_test, y_test = train_test_split(X, y, test_size=0.2)
 
+        if self.save_files == True:
+            path = os.getcwd() + INPUT_PATH + TRAIN_FOLDER_PATH
+            np.savetxt(path + 'X_train.csv', X_train, delimiter=',')
+            np.savetxt(path + 'X_test.csv', X_test, delimiter=',')
+            np.savetxt(path + 'y_train.csv', y_train, delimiter=',')
+            np.savetxt(path + 'y_train.csv', y_test, delimiter=',')
+
         return X_train, X_test, y_train, y_test
-
-    def _train_loader(self, batch_size):
-        
-        users, songs, playlist_binary = [], [], []
-
-        for u in range(len(self.uids)):
-            for s in range(len(self.sids)):
-                users.append(int(u))
-                songs.append(int(s))
-                playlist_binary.append(int(self.playlist_data[u][s]))
-
-        dataset = UserSongDataset(  user_tensor=torch.LongTensor(users),
-                                    item_tensor=torch.LongTensor(items),
-                                    target_tensor=torch.LongTensor(playlist_binary))
-
-        return DataLoader(dataset, batch_size=batch_size, shuffle=True)

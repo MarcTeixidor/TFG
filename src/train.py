@@ -11,7 +11,7 @@ import torch.optim as optim
 
 # Data path
 INPUT_PATH = "/data/"
-TRAIN_DATA_PATH = 'training/mat.npz'
+TRAIN_DATA_PATH = 'training/raw_mat.npz'
 
 # Global settings
 EPOCHS = 200
@@ -27,7 +27,8 @@ config = {
     'n_songs': int(data.shape[1]),
     'latent_dim_mf': 8,
     'latent_dim_mlp': 8,
-    'layers': [16,32,16,8]
+    'layers': [16,32,16,8],
+    'save_files': True
 }
 
 net = Neural_Recommender(config=config)
@@ -67,7 +68,7 @@ for epoch in range(EPOCHS):
         optimizer.step()
 
         running_loss += loss.item()
-        if i % 100 == 99:    # print every 2000 mini-batches
+        if i % 1000 == 999:    # print every 2000 mini-batches
             print('[%d, %5d] loss: %.3f' %
                 (epoch + 1, i + 1, running_loss / 2000))
             running_loss = 0.0
