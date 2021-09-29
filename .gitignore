@@ -130,3 +130,6 @@ dmypy.json
 
 #Directories
 data/training/
+
+#Files
+data/Untitled.ipynb
