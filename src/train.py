@@ -3,35 +3,26 @@ import numpy as np
 import scipy
 import os
 from neural import Neural_Recommender
-from data import DataGenerator, PlaylistDataset
-
-from sklearn.model_selection import KFold
+from data import DataGenerator
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import ConcatDataset
-
-def reset_weights(m):
-    for layer in m.children():
-        if hasattr(layer, 'reset_parameters'):
-            layer.reset_parameters()
 
 # Data path
 INPUT_PATH = "/data/"
-TRAIN_DATA_PATH = 'training/raw_mat.npz'
+TRAIN_DATA_PATH = 'sparsemat/mat.npz'
 
 # Model path
 MODEL_PATH = "/models/"
 
 # Global settings
-EPOCHS = 200
+EPOCHS = 20
 BATCH_SIZE = 64
-K_FOLDS = 5
 
 # Load data
 data = scipy.sparse.load_npz(os.getcwd() + INPUT_PATH + TRAIN_DATA_PATH)
-data = data[0:1000,0:10000]
+# data = data[0:1000,0:1000]
 
 # Config for the model
 config = {
@@ -43,78 +34,49 @@ config = {
     'save_files': True
 }
 
-# Define k-fold
-kfold = KFold(n_splits=K_FOLDS, shuffle=True)
+net = Neural_Recommender(config=config)
 
-# Define loss function
 loss_function = nn.BCELoss()
+optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 print('-----------  1  ------------')
 
-# DataLoader for training and testing
+# DataLoader for training
 sample_generator = DataGenerator(playlist_data=data, config=config)
 trainset = []
-testset = []
-
-for i in range(len(sample_generator.X_train)):
-    trainset.append([sample_generator.X_train[i][0], sample_generator.X_train[i][1]])
-
-for i in range(len(sample_generator.X_test)):
-    testset.append([sample_generator.X_test[i][0], sample_generator.X_test[i][1]])
-
-train_dataset = PlaylistDataset(trainset, sample_generator.y_train)
-test_dataset = PlaylistDataset(testset, sample_generator.y_test)
-dataset = ConcatDataset([train_dataset, test_dataset])
 
 print('-----------  2  ------------')
 
-for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
+for i in range(len(sample_generator.X_train)):
+    trainset.append([sample_generator.X_train[i][0], sample_generator.X_train[i][1], sample_generator.y_train[i]])
 
-    # Print
-    print(f'FOLD {fold}')
-    print('--------------------------------')
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+#testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 
-    # Sample elements randomly from a given list of ids, no replacement.
-    train_subsampler = torch.utils.data.SubsetRandomSampler(train_ids)
-    test_subsampler = torch.utils.data.SubsetRandomSampler(test_ids)
-    
-    # Define data loaders for training and testing data in this fold
-    trainloader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE, sampler=train_subsampler)
-    testloader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE, sampler=test_subsampler)
+print('-----------  3  ------------')
 
-    # Init the neural network
-    net = Neural_Recommender(config=config)
-    net.apply(reset_weights)
-    
-    # Initialize optimizer
-    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+for epoch in range(EPOCHS):
 
-    for epoch in range(0, EPOCHS):
+    running_loss = 0.0
+    for i, in_out in enumerate(trainloader, 0):
+        user, song, rating = in_out
+        rating = torch.FloatTensor([i for i in rating])
+        rating = torch.reshape(rating, (BATCH_SIZE, 1))
 
-        print(f'Starting epoch {epoch+1}')
+        optimizer.zero_grad()
 
-        running_loss = 0.0
+        outputs = net(user, song)
+        loss = loss_function(outputs, rating)
+        loss.backward()
+        optimizer.step()
 
-        for i, in_out in enumerate(trainloader, 0):
-            x, y = in_out
-            user = x[0]
-            song = x[1]
-
-            optimizer.zero_grad()
-
-            outputs = net(user, song)
-            outputs = torch.reshape(outputs, (-1,))
-            y = y.type(torch.FloatTensor)
-            loss = loss_function(outputs, y)
-            loss.backward()
-            optimizer.step()
-
-            running_loss += loss.item()
-            if i % 1000 == 999:    # print every 2000 mini-batches
-                print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 2000))
-                running_loss = 0.0
+        running_loss += loss.item()
+        if i % 1000 == 999:    # print every 2000 mini-batches
+            print('[%d, %5d] loss: %.3f' %
+                (epoch + 1, i + 1, running_loss / 2000))
+            running_loss = 0.0
 
 # Save trained model
-torch.save(net, os.getcwd() + MODEL_PATH)
+torch.save(net, os.getcwd() + MODEL_PATH + 'neural_model.pth')
 
 print('Finished Training')

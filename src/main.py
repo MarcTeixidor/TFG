@@ -6,11 +6,11 @@ from knn import KNN_Recommender
 from popularity_based import Pop_Based_Recommender
 from rand_based import Random_Recommender
 from neural import Neural_Recommender
-import time
 import os
+import pandas as pd
 
 INPUT_PATH = "/data/"
-TRAIN_DATA_PATH = 'training/mat.npz'
+DATA_PATH = 'sparsemat/mat.npz'
 
 class RecommenderSystems():
     
@@ -26,8 +26,11 @@ class RecommenderSystems():
     def __init__(self, config):
         # Load the processed data in sparse matrix format
         # config = vars(config)
-        data = scipy.sparse.load_npz(os.getcwd() + INPUT_PATH + TRAIN_DATA_PATH)
+        data = scipy.sparse.load_npz(os.getcwd() + INPUT_PATH + DATA_PATH)
+        #data = data[:, :10000]
         self.topk = int(config['topk'])
+        config['n_users'] = data.shape[0] # Each playlist is considered as a single user
+        config['n_songs'] = data.shape[1]
 
         if config["model"] == 'random':
             self.model = Random_Recommender(config, data) # Call method to instantiate random model
@@ -38,8 +41,6 @@ class RecommenderSystems():
         elif config["model"] == 'knn':
             self.model = KNN_Recommender(config, data) # Call method to instantiate KNN model
         elif config["model"] == 'neural':
-            config['n_users'] = data.shape[0] # Each playlist is considered as a single user
-            config['n_songs'] = data.shape[1]
             config['latent_dim'] = 8 # Revise this
             config['layers'] = [16,32,16,8] # Default 5 layers, revise...
             self.model = Neural_Recommender(config, data) # Call method to instantiate neural MF model
@@ -55,14 +56,23 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--model", help="String with model input:\n\trandom \n\tpopularity_based \n\tmf \n\tknn \n\t neural",required=True)
     parser.add_argument("-k", "--topk", help="Number of desired recommendations to make",required=True)
+    parser.add_argument("-s", "--save", help="Save recommendations made by the model", required=False, default=True)
     config = parser.parse_args().__dict__
 
     model = RecommenderSystems(config)
     model = model.get_model()
 
-    start_time = time.time()
     recommendations = []
     for i in range(model.get_data_len()[0]):
-        recommendations.append(model.make_k_recommendations())
-    end_time = time.time() - start_time
-    print(end_time)
+        if i % 10000 == 0:
+            print(i)
+        recs = model.make_k_recommendations(i)
+        recommendations.append([i,recs])
+
+    if config['save'] == True:
+        df = pd.DataFrame(recommendations)
+        df.columns = ['playlist_number', 'recommendations']
+        df.index = df['playlist_number']
+        del df['playlist_number']
+
+        df.to_csv(os.getcwd() + '/output/' + config['model'] + '_recommendations.csv')

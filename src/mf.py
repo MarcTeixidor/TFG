@@ -13,8 +13,8 @@ class MF_Recommender():
 
     def get_model(self):
         model = implicit.als.AlternatingLeastSquares(factors=64)
-        model = model.fit(self.data)
-
+        model.fit(self.data)
+        print(type(model))
         return model
 
     def make_recommendation(self, uid):
@@ -28,5 +28,4 @@ class MF_Recommender():
         return recs
 
     def get_data_len(self):
-        
         return self.data.shape

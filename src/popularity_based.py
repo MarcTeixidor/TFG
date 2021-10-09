@@ -5,7 +5,7 @@ class Pop_Based_Recommender():
     def __init__(self, config, data):
         self.data = data
         self.topk = int(config['topk'])
-        self.popular_songs = self.get_popular_songs()
+        self.popular_songs = list(self.get_popular_songs())
 
     def get_popular_songs(self):
 
@@ -19,17 +19,21 @@ class Pop_Based_Recommender():
         return popular_songs
 
     def make_recommendation(self, uid):
+        return self.popular_songs[0]
+
+    def make_k_recommendations(self, uid=None):
 
         songs_in_playlist = scipy.sparse.find(self.data[0,:])[1]
 
-        for song in self.popular_songs:
+        recs = []
+        for song in self.popular_songs[:self.topk*2]:
             sid = song[0]
             if sid in songs_in_playlist:
                 continue
             else:
-                break
+                recs.append(sid)
         
-        return sid
+        return recs
 
     def get_data_len(self):
     

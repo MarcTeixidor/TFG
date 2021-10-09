@@ -130,6 +130,9 @@ dmypy.json
 
 #Directories
 data/training/
+data/sparsemat/
+output/
 
 #Files
 data/Untitled.ipynb
+src/train2.ipynb
