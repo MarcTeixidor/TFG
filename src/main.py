@@ -10,7 +10,7 @@ import os
 import pandas as pd
 
 INPUT_PATH = "/data/"
-DATA_PATH = 'sparsemat/mat.npz'
+DATA_PATH = 'training/mat_train.npz'
 
 class RecommenderSystems():
     
@@ -27,7 +27,8 @@ class RecommenderSystems():
         # Load the processed data in sparse matrix format
         # config = vars(config)
         data = scipy.sparse.load_npz(os.getcwd() + INPUT_PATH + DATA_PATH)
-        #data = data[:, :10000]
+        #data = data[65000:, :]
+
         self.topk = int(config['topk'])
         config['n_users'] = data.shape[0] # Each playlist is considered as a single user
         config['n_songs'] = data.shape[1]
@@ -75,4 +76,4 @@ if __name__ == "__main__":
         df.index = df['playlist_number']
         del df['playlist_number']
 
-        df.to_csv(os.getcwd() + '/output/' + config['model'] + '_recommendations.csv')
+        df.to_csv(os.getcwd() + '/output/' + config['model'] + '_test_recommendations.csv')
