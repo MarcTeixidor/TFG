@@ -1,5 +1,6 @@
 import implicit
 import scipy
+import pickle
 
 class MF_Recommender():
 
@@ -10,11 +11,14 @@ class MF_Recommender():
         # Initialize and train the model
         self.model = self.get_model()
 
+    def __savemodel__(self):
+        with open('mf_model', 'wb') as f:
+            pickle.dump(self.model, file=f)
 
     def get_model(self):
         model = implicit.als.AlternatingLeastSquares(factors=64)
         model.fit(self.data)
-        print(type(model))
+
         return model
 
     def make_recommendation(self, uid):

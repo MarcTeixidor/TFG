@@ -11,6 +11,9 @@ class KNN_Recommender():
         self.model = self.get_model()
         self.neighbors = self.get_kneighbors()
 
+    def __savemodel__(self):
+        with open('knn_model', 'wb') as f:
+            pickle.dump(self.model, file=f)
 
     def get_model(self):
         model = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=self.topk, n_jobs=-1)

@@ -70,10 +70,11 @@ if __name__ == "__main__":
         recs = model.make_k_recommendations(i)
         recommendations.append([i,recs])
 
+    df = pd.DataFrame(recommendations)
+    df.columns = ['playlist_number', 'recommendations']
+    df.index = df['playlist_number']
+    del df['playlist_number']
+    df.to_csv(os.getcwd() + '/output/' + config['model'] + '_recommendations.csv')
+    
     if config['save'] == True:
-        df = pd.DataFrame(recommendations)
-        df.columns = ['playlist_number', 'recommendations']
-        df.index = df['playlist_number']
-        del df['playlist_number']
-
-        df.to_csv(os.getcwd() + '/output/' + config['model'] + '_test_recommendations.csv')
+        model.__savemodel__()    

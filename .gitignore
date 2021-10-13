@@ -133,6 +133,7 @@ data/training/
 data/test/
 data/sparsemat/
 output/
+models/
 
 #Files
 data/Untitled.ipynb
