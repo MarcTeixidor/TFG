@@ -30,7 +30,18 @@ class KNN_Recommender():
         return self.neighbors[uid, 0]
 
     def make_k_recommendations(self, uid):
-        return self.neighbors[uid]
+        top_k_neighbors = self.neighbors[uid, :self.topk]
+        
+        uid_playlist = self.data[uid].nonzero()[1]
+        recommendations = []
+        for i in top_k_neighbors:
+            neighbor_playlist = self.data[i].nonzero()[1]
+            for song in neighbor_playlist:
+                if song not in uid_playlist:
+                    recommendations.append(song)
+                    break
+        
+        return recommendations
 
     def get_data_len(self):
         return self.data.shape
